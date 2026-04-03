@@ -3,7 +3,8 @@
 // Vue/connexion
 // Page de connexion au formulaire principale
 // ==========================================
-// 
+// session_start();
+//
 // Variables reçues du Contrôller :
 //      $
 //      $
