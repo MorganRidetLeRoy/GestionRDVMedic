@@ -30,7 +30,7 @@
 
                 <button type="submit">Filtrer</button>
                 <!-- SÉCURITÉ : CSRF - Formulaire POST pour l'export -->
-                <form method="POST" action="/public/index.php" style="display: inline;">
+                <form method="POST" action="../index.php" style="display: inline;">
                     <input type="hidden" name="date" value="<?= htmlspecialchars($data['date'], ENT_QUOTES, 'UTF-8') ?>">
                     <input type="hidden" name="medecin_id" value="<?= $data['medecin_id'] ?>">
                     <input type="hidden" name="export" value="csv">
