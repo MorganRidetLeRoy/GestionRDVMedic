@@ -7,7 +7,7 @@
 
 session_start();
 
-require_once __DIR__ . '/database/connexion.php';
+require_once __DIR__ . '../database/connexion.php';
 
 class Connexion
 {
