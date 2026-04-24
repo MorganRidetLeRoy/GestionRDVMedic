@@ -9,14 +9,14 @@ $password = $_POST['password'] ?? '';
 
 switch ($role) {
     case 'secretaire':
-        header('Location: vueSecretaire.html');
+        header('Location: ./View/vueSecretaire.html');
         exit();
     case 'medecin':
         // Vous pourrez créer vueMedecin.php plus tard
-        header('Location: index.php?error=page_non_disponible'); 
+        header('Location: ......'); 
         exit();
     case 'administrateur':
-        header('Location: index.php?error=page_non_disponible');
+        header('Location: ......');
         exit();
     default:
         header('Location: index.php');
