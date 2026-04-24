@@ -9,7 +9,7 @@ $password = $_POST['password'] ?? '';
 
 switch ($role) {
     case 'secretaire':
-        header('Location: ./View/vueSecretaire.html');
+        header('Location: ./Views/vueSecretaire.html');
         exit();
     case 'medecin':
         // Vous pourrez créer vueMedecin.php plus tard
