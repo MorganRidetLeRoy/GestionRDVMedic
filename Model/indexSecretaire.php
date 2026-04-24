@@ -11,7 +11,7 @@
 
 session_start();
 
-require_once __DIR__ . '/../database/controllersSecretaire.php';
+require_once __DIR__ . '/../Controllers/controllersSecretaire.php';
 
 
 $action     = $_GET['action'] ?? 'index';
