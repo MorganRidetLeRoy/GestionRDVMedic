@@ -23,8 +23,8 @@ $controller = new SecretaireController();
 
 $routes = [
     'index'  => ['GET',  'index'],                     // Doit afficher la page ou le secrétaire se trouve
-    'recherche_medecin' => ['GET','rechercheMedecin'], //Devra executer la recherche du medecin
-    'ajouter_rdv' => ['POST', 'ajouterRendezVous'],    //Executera l'ajoût d'un RDV sur l'agenda d'un médecin
+    'rechercheMedecin' => ['GET','rechercheMedecin'],  //Devra executer la recherche du medecin
+    'ajouter_rdv' => ['POST', 'ajouter_rdv'],          //Executera l'ajoût d'un RDV sur l'agenda d'un médecin
 ];
 
 if (isset($routes[$action])) {
