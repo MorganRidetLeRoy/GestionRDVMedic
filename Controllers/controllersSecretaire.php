@@ -13,7 +13,7 @@ require_once __DIR__ . '/../Model/Medecin.php';
 
 class Secretaire
 {
-    public function recherche_medecin(string $terme): array|false
+    public function rechercheMedecin(string $terme): array|false
     {
     // On définit la clé (Idéalement, utilise une constante ou une variable d'environnement)
     $key = 'Clé de Chiffrement78513';
