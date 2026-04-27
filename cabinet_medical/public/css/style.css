@@ -1,0 +1,160 @@
+/* =========================================================
+   public/css/style.css — Cabinet Médical
+   Design médical propre, moderne, couleurs apaisantes
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+/* ─── Variables ─────────────────────────────────────────── */
+:root {
+  --primary:      #3b6fd4;
+  --primary-dark: #2a52a8;
+  --primary-light:#e8effe;
+  --accent:       #0ea5a0;
+  --danger:       #e53e3e;
+  --warning:      #f6ad55;
+  --success:      #38a169;
+  --bg:           #f0f4fa;
+  --surface:      #ffffff;
+  --border:       #dde3ef;
+  --text:         #1a2233;
+  --text-muted:   #6b7a99;
+  --sidebar-w:    240px;
+  --radius:       10px;
+  --shadow:       0 2px 14px rgba(59,111,212,.10);
+  --shadow-lg:    0 8px 32px rgba(59,111,212,.14);
+}
+
+/* ─── Reset ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+img{max-width:100%}
+
+/* ─── Layout ─────────────────────────────────────────────── */
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);background:linear-gradient(180deg,#1a2a5e 0%,#243580 100%);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:.25s}
+.main-content{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.05);position:sticky;top:0;z-index:50}
+.page-body{padding:2rem;flex:1}
+
+/* ─── Sidebar ────────────────────────────────────────────── */
+.sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+.sidebar-logo-icon{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sidebar-logo-text{font-family:'Lora',serif;font-size:14px;font-weight:600;line-height:1.3;letter-spacing:.01em}
+.sidebar-logo-text small{display:block;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:400;opacity:.65}
+.sidebar-nav{flex:1;padding:1rem 0;overflow-y:auto}
+.nav-section{margin-bottom:.5rem}
+.nav-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);padding:.5rem 1.25rem;margin-top:.75rem}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.25rem;color:rgba(255,255,255,.75);font-size:13.5px;font-weight:500;cursor:pointer;transition:.15s;border-left:3px solid transparent;border-radius:0}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff;text-decoration:none}
+.nav-item.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--accent)}
+.nav-item .icon{font-size:17px;width:20px;text-align:center;opacity:.85}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-user{display:flex;align-items:center;gap:.7rem;font-size:13px}
+.sidebar-avatar{width:32px;height:32px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--primary);flex-shrink:0}
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:1.5rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.card-title{font-size:16px;font-weight:700;color:var(--text)}
+.card-sm{padding:1.25rem}
+
+/* ─── Stats Cards ─────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem;margin-bottom:1.75rem}
+.stat-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:.5rem;box-shadow:var(--shadow)}
+.stat-card .stat-label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+.stat-card .stat-value{font-size:28px;font-weight:700;color:var(--primary);line-height:1}
+.stat-card .stat-note{font-size:12px;color:var(--text-muted)}
+.stat-card.accent{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none}
+.stat-card.accent .stat-label,.stat-card.accent .stat-note{color:rgba(255,255,255,.75)}
+.stat-card.accent .stat-value{color:#fff}
+
+/* ─── Tables ─────────────────────────────────────────────── */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;background:var(--surface)}
+thead{background:#f4f7fd}
+th{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:.75rem 1rem;text-align:left;white-space:nowrap}
+td{padding:.75rem 1rem;font-size:13.5px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#fafbff}
+
+/* ─── Badges ──────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:20px;font-size:11.5px;font-weight:600}
+.badge-success{background:#d1fae5;color:#065f46}
+.badge-danger {background:#fee2e2;color:#991b1b}
+.badge-warning{background:#fef3c7;color:#92400e}
+.badge-primary{background:var(--primary-light);color:var(--primary-dark)}
+.badge-gray   {background:#f1f5f9;color:#475569}
+
+/* ─── Boutons ────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.15rem;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:.15s;text-decoration:none;white-space:nowrap}
+.btn:hover{text-decoration:none;opacity:.9;transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger {background:var(--danger);color:#fff}
+.btn-ghost  {background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+.btn-ghost:hover{background:var(--primary-light)}
+.btn-sm{padding:.35rem .75rem;font-size:12.5px}
+.btn-xs{padding:.2rem .55rem;font-size:12px}
+.btn-block{width:100%;justify-content:center}
+
+/* ─── Formulaires ────────────────────────────────────────── */
+.form-group{margin-bottom:1.1rem}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:.4rem}
+.form-control{width:100%;padding:.6rem .9rem;font-size:14px;border:1.5px solid var(--border);border-radius:8px;background:#fafbff;color:var(--text);font-family:inherit;transition:.15s;outline:none}
+.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,111,212,.12)}
+textarea.form-control{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
+/* ─── Alertes flash ──────────────────────────────────────── */
+.flash{padding:.85rem 1.1rem;border-radius:8px;font-size:13.5px;font-weight:500;margin-bottom:1.25rem;display:flex;align-items:center;gap:.6rem}
+.flash-success{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
+.flash-error  {background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.flash-warning{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+
+/* ─── Auth pages ─────────────────────────────────────────── */
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a2a5e 0%,#0ea5a0 100%);padding:2rem}
+.auth-card{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.auth-logo{width:52px;height:52px;background:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1.5rem;box-shadow:0 6px 20px rgba(59,111,212,.35)}
+.auth-card h1{text-align:center;font-family:'Lora',serif;font-size:22px;color:var(--text);margin-bottom:.4rem}
+.auth-subtitle{text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:1.75rem}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:1.25rem 0;color:var(--text-muted);font-size:12px}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-footer{text-align:center;font-size:13px;color:var(--text-muted);margin-top:1.25rem}
+
+/* ─── Agenda / Calendrier ───────────────────────────────── */
+.agenda-grid{display:grid;gap:.5rem}
+.agenda-day{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.agenda-day-header{background:#f4f7fd;padding:.5rem .85rem;font-size:12.5px;font-weight:700;color:var(--text-muted);display:flex;justify-content:space-between}
+.creneau{display:flex;align-items:center;gap:.75rem;padding:.5rem .85rem;border-top:1px solid var(--border);font-size:13px}
+.creneau-time{font-weight:600;color:var(--text-muted);min-width:72px;font-size:12.5px}
+.creneau.disponible .creneau-status{color:var(--success)}
+.creneau.reserve    .creneau-status{color:var(--primary)}
+.creneau.bloque     .creneau-status{color:var(--danger);opacity:.6}
+
+/* ─── Topbar ────────────────────────────────────────────── */
+.topbar-title{font-weight:700;font-size:16px;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:1rem}
+.topbar-user{font-size:13px;color:var(--text-muted)}
+
+/* ─── Page header ────────────────────────────────────────── */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem}
+.page-header h1{font-size:22px;font-weight:700;color:var(--text);font-family:'Lora',serif}
+.page-header p{font-size:13.5px;color:var(--text-muted);margin-top:.2rem}
+
+/* ─── Search bar ─────────────────────────────────────────── */
+.search-bar{display:flex;gap:.5rem;margin-bottom:1.5rem}
+.search-bar .form-control{flex:1}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main-content{margin-left:0}
+  .form-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
