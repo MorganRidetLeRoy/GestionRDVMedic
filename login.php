@@ -1,25 +1,43 @@
 <?php
-// On récupère les données envoyées par le formulaire (index.php)
-$role = $_POST['role'] ?? '';
-$username = $_POST['username'] ?? '';
-$password = $_POST['password'] ?? '';
+// login.php
+require_once 'connexion_database.php';
 
-// Dans une application réelle, on vérifierait ici le mot de passe avec la base de données.
-// Pour l'instant, nous gérons uniquement la redirection par rôle.
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $role = $_POST['role'] ?? '';
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
 
-switch ($role) {
-    case 'secretaire':
-        header('Location: ./Views/vueSecretaire.html');
-        exit();
-    case 'medecin':
-        // Vous pourrez créer vueMedecin.php plus tard
-        header('Location: ......'); 
-        exit();
-    case 'administrateur':
-        header('Location: ......');
-        exit();
-    default:
-        header('Location: index.php');
-        exit();
+    if (empty($role) || empty($username) || empty($password)) {
+        die("Tous les champs sont obligatoires.");
+    }
+
+    try {
+        $pdo = getConnexion();
+        $stmt = $pdo->prepare("SELECT * FROM utilisateurs WHERE username = :username AND role = :role");
+        $stmt->execute(['username' => $username, 'role' => $role]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password'])) {
+            // Redirection selon le rôle
+            switch ($role) {
+                case 'secretaire':
+                    header('Location: ./Views/vueSecretaire.php');
+                    exit();
+                case 'medecin':
+                    header('Location: ./Views/vueMedecin.php');
+                    exit();
+                case 'administrateur':
+                    header('Location: ./Views/vueAdmin.php');
+                    exit();
+                default:
+                    header('Location: index.php');
+                    exit();
+            }
+        } else {
+            echo "Identifiants incorrects.";
+        }
+    } catch (PDOException $e) {
+        die("Erreur de connexion : " . $e->getMessage());
+    }
 }
 ?>
