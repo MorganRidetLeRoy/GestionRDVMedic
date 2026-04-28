@@ -1,6 +1,6 @@
 <?php
 // index.php
-require_once 'connexion_database.php';
+require_once './database/connexion_database.php';
 
 // Récupération des statistiques (exemple)
 try {
