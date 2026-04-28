@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Redirection selon le rôle
             switch ($role) {
                 case 'secretaire':
-                    header('Location: ./Views/vueSecretaire.php');
+                    header('Location: ./Views/vueSecretaire.html');
                     exit();
                 case 'medecin':
                     header('Location: ./Views/vueMedecin.php');
