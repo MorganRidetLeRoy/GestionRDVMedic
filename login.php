@@ -1,6 +1,6 @@
 <?php
 // login.php
-require_once 'connexion_database.php';
+require_once './database/connexion_database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role = $_POST['role'] ?? '';
