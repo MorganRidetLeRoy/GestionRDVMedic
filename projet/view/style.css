@@ -1,0 +1,81 @@
+/* view/style.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+}
+
+.search-section {
+    margin-bottom: 20px;
+}
+
+.search-section input {
+    padding: 8px;
+    width: 300px;
+}
+
+.search-section button {
+    padding: 8px 15px;
+}
+
+.appointment-form {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.appointment-form input, .appointment-form select, .appointment-form button {
+    padding: 8px;
+    margin: 5px 0;
+    width: 100%;
+}
+
+.appointments-list {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.appointment {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.slot-button {
+    padding: 10px 15px;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+    cursor: pointer;
+    background: white;
+    color: #3498db;
+    transition: all 0.3s;
+    font-weight: bold;
+}
+
+.slot-button:hover {
+    background: #3498db;
+    color: white;
+}
+
+.slot-button.active {
+    background: #27ae60;
+    border-color: #27ae60;
+    color: white;
+}
+
+#submitBtn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
