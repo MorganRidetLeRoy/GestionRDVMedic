@@ -18,19 +18,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-            // Redirection selon le rôle
+            // Redirection vers le routeur avec l'action correspondante
             switch ($role) {
                 case 'secretaire':
-                    header('Location: ./Views/vueSecretaire.html');
+                    header('Location: routeur.php?action=index');
                     exit();
                 case 'medecin':
-                    header('Location: ./Views/vueMedecin.php');
+                    header('Location: routeur.php?action=vue_medecin');
                     exit();
                 case 'administrateur':
-                    header('Location: ./Views/vueAdmin.php');
+                    header('Location: routeur.php?action=vue_admin');
                     exit();
                 default:
-                    header('Location: index.php');
+                    header('Location: routeur.php?action=index');
                     exit();
             }
         } else {
