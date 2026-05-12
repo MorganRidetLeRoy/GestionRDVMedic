@@ -1,3 +1,4 @@
+<?php var_dump($resultats); ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -234,7 +235,7 @@
         <div class="alert-error"><?= htmlspecialchars($erreur) ?></div>
     <?php endif; ?>
  
-    <form method="GET" action="" class="search-bar">
+    <form method="GET" action="../../Routage/Routeur.php" class="search-bar">
         <input type="hidden" name="action" value="recherche_medecin">
         <input
             type="text"
