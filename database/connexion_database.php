@@ -9,20 +9,20 @@
  * On utilise la méthode PDO pour la connexion
  */
 
-function getConnexion(): PASSWORD_DEFAULT
+function getConnexion(): PDO
 {
     //--Paramètres de connexion--------------------
     $host = 'localhost';
     $dbname ='cabinet_medical';
     $user = 'root';
     $pass = '475Ju56n@';    //password
-    $chaset = 'utf8mb4';
+    $charset = 'utf8mb4';
     //---------------------------------------------
 
     $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
 
     $option = [
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXEPTION, //Lève ue exeption en cas d'erreur SQL
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, //Lève une exeption en cas d'erreur SQL
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,      //Résultat sous forme de tableaux associatifs
         PDO::ATTR_EMULATE_PREPARES   => false,                 //Vraies requêtes préparées (sécurité)
     ];
