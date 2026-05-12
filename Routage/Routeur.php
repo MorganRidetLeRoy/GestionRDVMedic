@@ -1,6 +1,9 @@
 <?php 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 //  ______________________________________________________________________________________________________________
-// | Index de la page de recherche d'agenda des médecins et les fiches des patients ainsi que l'ajoût de RDV      |
+// | Routage de la page Secretaire                                                                                |
 // | Reçois une requête http (GET/POST + paramètres)                                                              |
 // |                                                                                                              | 
 // | Ce que font les routes:                                                                                      |
@@ -9,37 +12,30 @@
 // |   - ajouter_rdv -> ajoutera un patient                                                                       |
 // |______________________________________________________________________________________________________________|
 
-// routeur.php
 session_start();
 
 require_once __DIR__ . '/../database/connexion_database.php';
 require_once __DIR__ . '/../Model/RechercheMedecin.php';
 require_once __DIR__ . '/../Controllers/SecretaireController.php';
-require_once __DIR__ . '/../Controllers/MedecinController.php';
-require_once __DIR__ . '/../Controllers/AdminController.php';
 
-$action = $_GET['action'] ?? 'index';
-$methode = $_SERVER['REQUEST_METHOD'];
-$pdo = connexion_database();
+$action     = $_GET['action'] ?? 'index';
+$methode    = $_SERVER['REQUEST_METHOD'];
+$pdo        = getConnexion();
+$controller = new SecretaireController($pdo);
 
-// Initialisation des contrôleurs
-$secretaireController = new SecretaireController($pdo);
-$medecinController = new MedecinController($pdo);
-$adminController = new AdminController($pdo);
+// Table de routage : action → méthode du contrôleur
+// Les actions 'ajouter_rdv' exigent POST
 
-// Table de routage : action → [méthode HTTP, contrôleur, méthode]
 $routes = [
-    'index' => ['GET', $secretaireController, 'index'], // Page par défaut (secrétaire)
-    'recherche_medecin' => ['GET', $secretaireController, 'rechercheMedecin'],
-    'ajouter_rdv' => ['POST', $secretaireController, 'ajouterRendezVous'],
-    'vue_medecin' => ['GET', $medecinController, 'index'], // Page médecin
-    'vue_admin' => ['GET', $adminController, 'index'], // Page admin
+    'index'  => ['GET',  'index'],                     // Doit afficher la page ou le secrétaire se trouve
+    'recherche_medecin' => ['GET','rechercheMedecin'], //Devra executer la recherche du medecin
+    'ajouter_rdv' => ['POST', 'ajouterRendezVous'],    //Executera l'ajoût d'un RDV sur l'agenda d'un médecin
 ];
 
 if (isset($routes[$action])) {
-    [$methodeAttendue, $controller, $nomMethode] = $routes[$action];
+    [$methodeAttendue, $nomMethode] = $routes[$action];
 
-    // Vérification de la méthode HTTP
+    // Sécurité : on vérifie que la méthode HTTP est correcte
     if ($methode !== $methodeAttendue) {
         http_response_code(405);
         die('Méthode HTTP non autorisée pour cette action.');
@@ -48,7 +44,7 @@ if (isset($routes[$action])) {
     // Appel dynamique de la méthode du contrôleur
     $controller->$nomMethode();
 } else {
-    // Action inconnue → redirection vers la page par défaut (secrétaire)
-    $secretaireController->index();
+    // Action inconnue → on affiche la liste
+    $controller->index();
 }
-?>
+
