@@ -2,6 +2,630 @@
 // =============================================
 // FICHIER: index.php
 // RÔLE: Page principale du tableau de bord pour la gestion des rendez-vous d'un cabinet médical.
+// AFFICHE: Statistiques dynamiques, graphiques, mots-clés des patients, et interface de connexion.
+// =============================================
+
+// --- CONFIGURATION DES ERREURS ---
+// Active l'affichage des erreurs pour le débogage (à désactiver en production)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// --- DÉMARRAGE DE LA SESSION ---
+// Permet d'utiliser $_SESSION pour stocker des informations entre les requêtes.
+session_start();
+
+// --- INCLUSION DES FICHIERS NÉCESSAIRES ---
+require_once './database/connexion_database.php';
+
+// =============================================
+// RÉCUPÉRATION DES STATISTIQUES DEPUIS LA BASE DE DONNÉES
+// =============================================
+try {
+    $pdo = getConnexion();
+
+    // --- REQUÊTES SQL DYNAMIQUES ---
+    // 1. Nombre total de rendez-vous ce mois
+    $stmt = $pdo->query("SELECT COUNT(*) as total FROM rendez_vous WHERE MONTH(date_rdv) = MONTH(CURRENT_DATE)");
+    $totalRdv = $stmt->fetch()['total'];
+
+    // 2. Nombre de patients consultés ce mois
+    $stmt = $pdo->query("SELECT COUNT(DISTINCT id_patient) as patients FROM rendez_vous WHERE MONTH(date_rdv) = MONTH(CURRENT_DATE)");
+    $patientsConsultes = $stmt->fetch()['patients'];
+
+    // 3. Nombre de rendez-vous annulés ce mois
+    $stmt = $pdo->query("SELECT COUNT(*) as annules FROM rendez_vous WHERE statut = 'annulé' AND MONTH(date_rdv) = MONTH(CURRENT_DATE)");
+    $rdvAnnules = $stmt->fetch()['annules'];
+
+    // 4. Nombre de rendez-vous en retard ce mois
+    $stmt = $pdo->query("SELECT COUNT(*) as retards FROM rendez_vous WHERE retard = 1 AND MONTH(date_rdv) = MONTH(CURRENT_DATE)");
+    $rdvRetard = $stmt->fetch()['retards'];
+
+    // 5. Durée moyenne des consultations (en minutes)
+    $stmt = $pdo->query("SELECT AVG(duree) as duree_moyenne FROM rendez_vous WHERE MONTH(date_rdv) = MONTH(CURRENT_DATE)");
+    $dureeMoyenne = round($stmt->fetch()['duree_moyenne'], 0); // Arrondi à l'entier le plus proche
+
+    // 6. Note moyenne des avis (sur 5)
+    $stmt = $pdo->query("SELECT AVG(note) as note_moyenne FROM avis");
+    $noteMoyenne = round($stmt->fetch()['note_moyenne'], 1); // Arrondi à 1 décimale
+
+    // 7. Délai moyen de prise de rendez-vous (en jours)
+    $stmt = $pdo->query("SELECT AVG(DATEDIFF(date_rdv, date_prise_rdv)) as delai_moyen FROM rendez_vous");
+    $delaiMoyen = round($stmt->fetch()['delai_moyen'], 0);
+
+    // 8. Récupération des mots-clés des commentaires (avec leur nombre d'occurrences)
+    $stmt = $pdo->query("
+        SELECT mot_cle, COUNT(*) as count
+        FROM commentaires
+        WHERE MONTH(date_commentaire) = MONTH(CURRENT_DATE)
+        GROUP BY mot_cle
+        ORDER BY count DESC
+        LIMIT 7
+    ");
+    $keywords = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    // --- GESTION DES ERREURS ---
+    // Enregistre l'erreur dans un fichier log (pour le débogage en production)
+    error_log("Erreur base de données dans index.php: " . $e->getMessage());
+
+    // Affiche un message d'erreur générique (sans détails sensibles)
+    die("Une erreur est survenue lors de la récupération des données. Veuillez réessayer plus tard.");
+}
+?>
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- =============================================
+         MÉTADONNÉES DE LA PAGE
+         ============================================= -->
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Tableau de bord pour la gestion des rendez-vous médicaux"/>
+    <title>Gestion de Rendez-vous - Cabinet Médical</title>
+
+    <!-- =============================================
+         INTÉGRATION DE CHART.JS (AVEC FALLBACK)
+         ============================================= -->
+    <!-- Chargement de Chart.js depuis un CDN avec fallback local si échec -->
+    <script>
+        // Vérifie si Chart.js est déjà chargé
+        if (!window.Chart) {
+            document.write('<script src="/js/chart.js"><\/script>');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- =============================================
+         STYLES CSS
+         ============================================= -->
+    <style>
+        /* =============================================
+           STYLES GLOBAUX
+           ============================================= */
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --secondary-color: #2ecc71;
+            --secondary-dark: #27ae60;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #333;
+            --white: #ffffff;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-modal: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        /* =============================================
+           CONTAINER PRINCIPAL
+           ============================================= */
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* =============================================
+           EN-TÊTE
+           ============================================= */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px 0;
+            background-color: var(--medium-gray);
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        /* =============================================
+           GRILLE DES STATISTIQUES
+           ============================================= */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* =============================================
+           CARTES DE STATISTIQUES
+           ============================================= */
+        .stat-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin: 10px 0;
+        }
+
+        /* =============================================
+           SECTION DES GRAPHIQUES
+           ============================================= */
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        /* =============================================
+           SECTION DES COMMENTAIRES
+           ============================================= */
+        .comments {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .comments h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        /* =============================================
+           MOTS-CLÉS DES COMMENTAIRES
+           ============================================= */
+        .comment-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .keyword {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .keyword:hover {
+            background-color: rgba(52, 152, 219, 0.4);
+        }
+
+        .keyword-count {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+
+        /* =============================================
+           BOUTON DE CONNEXION
+           ============================================= */
+        .login-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* =============================================
+           MODALE DE CONNEXION
+           ============================================= */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-modal);
+            z-index: 1001;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .login-modal h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .login-modal input,
+        .login-modal select,
+        .login-modal button {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .login-modal button {
+            background-color: var(--secondary-color);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            padding: 12px;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-modal button:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        /* =============================================
+           MESSAGES D'ERREUR
+           ============================================= */
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        /* =============================================
+           RESPONSIVE
+           ============================================= */
+        @media (max-width: 768px) {
+            .charts {
+                grid-template-columns: 1fr;
+            }
+
+            .login-btn {
+                width: auto;
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- =============================================
+         CONTAINER PRINCIPAL
+         ============================================= -->
+    <div class="container">
+        <!-- =============================================
+             EN-TÊTE
+             ============================================= -->
+        <header>
+            <h1>Gestion des Rendez-vous - Cabinet Médical</h1>
+            <?php if (isset($_SESSION['username'])): ?>
+                <p style="margin-top: 10px; color: var(--primary-dark);">
+                    Connecté en tant que <strong><?= htmlspecialchars($_SESSION['role']) ?></strong>
+                </p>
+            <?php endif; ?>
+        </header>
+
+        <!-- =============================================
+             MAIN CONTENT (BALISES SÉMANTIQUES)
+             ============================================= -->
+        <main>
+            <!-- =============================================
+                 SECTION DES STATISTIQUES
+                 ============================================= -->
+            <section aria-labelledby="stats-title">
+                <h2 id="stats-title" style="display: none;">Statistiques du cabinet</h2>
+                <div class="stats-grid">
+                    <!-- Carte pour le nombre total de rendez-vous -->
+                    <div class="stat-card">
+                        <h3>Rendez-vous du mois</h3>
+                        <div class="stat-value"><?= htmlspecialchars($totalRdv) ?></div>
+                        <p>Total des rendez-vous pris</p>
+                    </div>
+
+                    <!-- Carte pour le nombre de patients consultés -->
+                    <div class="stat-card">
+                        <h3>Patients consultés</h3>
+                        <div class="stat-value"><?= htmlspecialchars($patientsConsultes) ?></div>
+                        <p>Nombre de consultations réalisées</p>
+                    </div>
+
+                    <!-- Carte pour le nombre de rendez-vous annulés -->
+                    <div class="stat-card">
+                        <h3>Rendez-vous annulés</h3>
+                        <div class="stat-value"><?= htmlspecialchars($rdvAnnules) ?></div>
+                        <p>Nombre d'annulations ce mois</p>
+                    </div>
+
+                    <!-- Carte pour le nombre de rendez-vous en retard -->
+                    <div class="stat-card">
+                        <h3>Rendez-vous en retard</h3>
+                        <div class="stat-value"><?= htmlspecialchars($rdvRetard) ?></div>
+                        <p>Patients arrivés en retard</p>
+                    </div>
+
+                    <!-- Carte pour la durée moyenne des consultations -->
+                    <div class="stat-card">
+                        <h3>Durée moyenne des consultations</h3>
+                        <div class="stat-value"><?= htmlspecialchars($dureeMoyenne) ?> min</div>
+                        <p>Temps moyen par consultation</p>
+                    </div>
+
+                    <!-- Carte pour la note moyenne des avis -->
+                    <div class="stat-card">
+                        <h3>Note moyenne des avis</h3>
+                        <div class="stat-value"><?= htmlspecialchars($noteMoyenne) ?>/5</div>
+                        <p>Satisfaction des patients</p>
+                    </div>
+
+                    <!-- Carte pour le délai moyen de prise de rendez-vous -->
+                    <div class="stat-card">
+                        <h3>Délai moyen de prise de RDV</h3>
+                        <div class="stat-value"><?= htmlspecialchars($delaiMoyen) ?> jours</div>
+                        <p>Temps entre demande et consultation</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =============================================
+                 SECTION DES GRAPHIQUES
+                 ============================================= -->
+            <section aria-labelledby="charts-title">
+                <h2 id="charts-title" style="display: none;">Graphiques des statistiques</h2>
+                <div class="charts">
+                    <div class="chart-container">
+                        <h3>Statistiques des rendez-vous (mois en cours)</h3>
+                        <canvas id="rdvStatsChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =============================================
+                 SECTION DES COMMENTAIRES DES PATIENTS
+                 ============================================= -->
+            <section aria-labelledby="comments-title">
+                <h2 id="comments-title">Mots-clés des retours patients (ce mois)</h2>
+                <div class="comments">
+                    <div class="comment-keywords">
+                        <?php if (empty($keywords)): ?>
+                            <p>Aucun commentaire disponible pour ce mois.</p>
+                        <?php else: ?>
+                            <?php foreach ($keywords as $keyword): ?>
+                                <span class="keyword">
+                                    <?= htmlspecialchars($keyword['mot_cle']) ?>
+                                    <span class="keyword-count"><?= htmlspecialchars($keyword['count']) ?></span>
+                                </span>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- =============================================
+         BOUTON DE CONNEXION (MASQUÉ SI DÉJÀ CONNECTÉ)
+         ============================================= -->
+    <?php if (!isset($_SESSION['username'])): ?>
+        <button class="login-btn" onclick="document.getElementById('loginModal').style.display='block'">
+            Se connecter
+        </button>
+    <?php endif; ?>
+
+    <!-- =============================================
+         MODALE DE CONNEXION
+         ============================================= -->
+    <?php if (!isset($_SESSION['username'])): ?>
+        <div id="loginModal" class="login-modal">
+            <h2>Connexion</h2>
+            <?php if (isset($_GET['error']) && $_GET['error'] == '1'): ?>
+                <p class="error-message">Identifiants incorrects. Veuillez réessayer.</p>
+            <?php endif; ?>
+            <form action="login.php" method="post">
+                <select name="role" required>
+                    <option value="">Sélectionnez votre rôle</option>
+                    <option value="secretaire">Secrétaire</option>
+                    <option value="medecin">Médecin</option>
+                    <option value="administrateur">Administrateur</option>
+                </select>
+                <input name="username" type="text" placeholder="Nom d'utilisateur" required>
+                <input name="password" type="password" placeholder="Mot de passe" required>
+                <button type="submit">Se connecter</button>
+            </form>
+        </div>
+    <?php endif; ?>
+
+    <!-- =============================================
+         SCRIPT POUR LE GRAPHIQUE ET LA MODALE
+         ============================================= -->
+    <script>
+        // =============================================
+        // INITIALISATION DU GRAPHIQUE CHART.JS
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('rdvStatsChart').getContext('2d');
+
+            // Données du graphique (valeurs injectées depuis PHP)
+            const data = {
+                labels: [
+                    'Rendez-vous',
+                    'Patients consultés',
+                    'Annulations',
+                    'Retards',
+                    'Durée moyenne',
+                    'Note moyenne',
+                    'Délai moyen'
+                ],
+                datasets: [{
+                    label: 'Statistiques',
+                    data: [
+                        <?= json_encode($totalRdv) ?>,
+                        <?= json_encode($patientsConsultes) ?>,
+                        <?= json_encode($rdvAnnules) ?>,
+                        <?= json_encode($rdvRetard) ?>,
+                        <?= json_encode($dureeMoyenne) ?>,
+                        <?= json_encode($noteMoyenne) ?>,
+                        <?= json_encode($delaiMoyen) ?>
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',   // Rouge
+                        'rgba(54, 162, 235, 0.7)',   // Bleu
+                        'rgba(255, 206, 86, 0.7)',  // Jaune
+                        'rgba(75, 192, 192, 0.7)',  // Vert
+                        'rgba(153, 102, 255, 0.7)', // Violet
+                        'rgba(255, 159, 64, 0.7)',  // Orange
+                        'rgba(201, 203, 207, 0.7)'  // Gris
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(201, 203, 207, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            // Configuration du graphique
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Statistiques détaillées des rendez-vous',
+                            font: { size: 16 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y;
+                                        // Ajoute "min" pour la durée moyenne (index 4)
+                                        if (context.dataIndex === 4) label += ' min';
+                                        // Ajoute "jours" pour le délai moyen (index 6)
+                                        if (context.dataIndex === 6) label += ' jours';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Nombre / Durée' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Catégories' }
+                        }
+                    }
+                }
+            };
+
+            // Création du graphique
+            new Chart(ctx, config);
+
+            // =============================================
+            // GESTION DE LA MODALE DE CONNEXION
+            // =============================================
+            const modal = document.getElementById('loginModal');
+            if (modal) {
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+</html><?php
+// =============================================
+// FICHIER: index.php
+// RÔLE: Page principale du tableau de bord pour la gestion des rendez-vous d'un cabinet médical.
 // AFFICHE: Statistiques, graphiques, et interface de connexion.
 // =============================================
 
