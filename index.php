@@ -16,10 +16,10 @@ try {
     $totalRdv = $stmt->fetch()['total']; // Récupération du résultat sous forme de tableau associatif
 
     // --- DONNÉES STATIQUES ---
-    $patientsConsultes = 95;    // Nombre de patients consultés ce mois
-    $rdvAnnules = 15;           // Nombre de rendez-vous annulés
-    $rdvRetard = 8;             // Nombre de rendez-vous en retard
-    $dureeMoyenne = 25;         // Durée moyenne des consultations (en minutes)
+    $patientsConsultes = 150;    // Nombre de patients consultés ce mois
+    $rdvAnnules = 12;           // Nombre de rendez-vous annulés
+    $rdvRetard = 25;             // Nombre de rendez-vous en retard
+    $dureeMoyenne = 22;         // Durée moyenne des consultations (en minutes)
     $noteMoyenne = 4.2;         // Note moyenne des avis patients (sur 5)
     $delaiMoyen = 3;            // Délai moyen pour obtenir un rendez-vous (en jours)
 
