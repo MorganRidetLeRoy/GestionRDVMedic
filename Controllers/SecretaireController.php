@@ -1,11 +1,36 @@
 <?php
 // controller/SecretaireController.php
-
-class SecretaireController
+/**
+* Ici seront les commentaires syntaxiques
+* 
+* 1. Structure de classe et propriétés
+*
+*    class : Mot-clé pour définir un objet. Tout ce qui est entre les accolade { } appartient à cette objet.
+*    private : Modificateur de visibilité. La variable $medecinRecherche n'est accessible qu'à l'intérieur de cette classe.
+*    RechercheMedecin (Type mapping): C'est le typage. On précise que cette variable doit obligatoirement être une instance de la classe RechercheMedecin.
+*    $this : Pseudo-variable qui représente l'instance actuelle de l'objet. On l'utilise pour accèder aux propriétés ou méthodes internes de la classe
+*
+* 2. Le constructeur et l'injection
+*    
+*    $__construct : Une "méthode magique". Elle s'exécute automatiquement lors du new SecretaireController().
+*    PDO $db : On force l'argument à être un objet de type PDO (PHP Data Objects). C'est ce qu'on appelle l'injection de dépendances.
+*    -> (Opérateur d'objet): Utilisé pour accéder à une méthode ou une propriété d'un objet.
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*/
+class SecretaireController //nouvelle class qui sera réservé au secrétaire
 {
-    private RechercheMedecin $medecinRecherche;
+    private RechercheMedecin $medecinRecherche; //appel la fonction RechercheMedecin et on attend un objet précis
 
-    public function __construct(PDO $db)
+    public function __construct(PDO $db) // la fonction qui s'execute automatiquement dès qu'on crée le controller. Elle reçois
     {
         $this->medecinRecherche = new RechercheMedecin($db);
     }
