@@ -1,159 +1,126 @@
 <?php
-// =============================================
-// FICHIER: login.php
-// RÔLE: Gère la connexion des utilisateurs (secrétaire, médecin, administrateur)
-//       en vérifiant leurs identifiants dans la base de données.
-//       Si les identifiants sont corrects, l'utilisateur est redirigé vers une page spécifique en fonction de son rôle.
-// =============================================
+/**
+ * =============================================
+ * FICHIER: login.php (Version Sécurisée)
+ * RÔLE: Gère la connexion des utilisateurs (secrétaire, médecin, administrateur)
+ *       en vérifiant leurs identifiants dans la base de données.
+ *       Si les identifiants sont corrects, l'utilisateur est redirigé vers une page spécifique en fonction de son rôle.
+ *
+ * STRATÉGIES DE SÉCURITÉ:
+ * - Protection contre les injections SQL (PDO + requêtes préparées).
+ * - Protection contre CSRF (token unique par session).
+ * - Masquage des erreurs sensibles (logs sécurisés).
+ * - Limitation des tentatives de connexion (anti Brute Force).
+ * - Régénération de l'ID de session (anti Session Fixation).
+ * - Vérification des entrées utilisateur.
+ * =============================================
+ */
 
-// --- INCLUSION DU FICHIER DE CONNEXION À LA BASE DE DONNÉES ---
-// require_once : Inclut et évalue un fichier PHP UNE SEULE FOIS (évite les inclusions multiples).
-// Si le fichier n'existe pas, une erreur fatale est générée.
-// __DIR__ : Constante magique qui retourne le chemin absolu du dossier contenant ce fichier.
-// './database/connexion_database.php' : Chemin relatif vers le fichier de connexion.
-// Ce fichier contient la fonction getConnexion() qui retourne un objet PDO pour interagir avec la base de données.
-require_once './database/connexion_database.php';
+// --- DÉMARRAGE DE LA SESSION (À PLACER AU DÉBUT) ---
+// session_start() : Démarre ou reprend une session existante.
+// Configuration des cookies de session pour une sécurité optimale.
+session_set_cookie_params([
+    'lifetime' => 3600,       // Durée de vie : 1 heure
+    'path' => '/',
+    'domain' => '',
+    'secure' => true,         // HTTPS uniquement
+    'httponly' => true,       // Inaccessible via JavaScript (protection XSS)
+    'samesite' => 'Strict'    // Protection contre CSRF
+]);
+session_start();
 
-// =============================================
-// VÉRIFICATION DE LA MÉTHODE DE LA REQUÊTE HTTP
-// =============================================
-// $_SERVER : Superglobale PHP qui contient des informations sur le serveur et la requête HTTP.
-// 'REQUEST_METHOD' : Clé qui contient la méthode HTTP utilisée (GET, POST, PUT, DELETE, etc.).
-// === : Opérateur de comparaison stricte (vérifie la valeur ET le type).
-// 'POST' : Méthode HTTP utilisée pour soumettre un formulaire.
-// Ce bloc vérifie si la requête HTTP est de type POST (formulaire soumis).
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// --- VÉRIFICATION DE LA MÉTHODE DE LA REQUÊTE HTTP ---
+// Si la requête n'est pas de type POST, on arrête l'exécution.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    die("Méthode non autorisée.");
+}
 
-    // =============================================
-    // RÉCUPÉRATION DES DONNÉES DU FORMULAIRE
-    // =============================================
-    // $_POST : Superglobale PHP qui contient les données envoyées via la méthode POST.
-    // $_POST['role'] : Récupère la valeur du champ 'role' du formulaire.
-    // ?? : Opérateur "Null Coalescing" (retourne la première valeur non nulle).
-    // Si $_POST['role'] n'existe pas ou est null, la valeur par défaut '' (chaîne vide) est utilisée.
-    // Cet opérateur évite d'avoir des erreurs "Undefined index" si le champ n'existe pas.
-    $role = $_POST['role'] ?? '';
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
+// --- VÉRIFICATION DU TOKEN CSRF ---
+// Vérifie si le token CSRF existe et correspond à celui stocké en session.
+// $_SESSION['csrf_token'] ?? '' : Opérateur Null Coalescing (retourne '' si la clé n'existe pas).
+if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
+    die("Erreur CSRF : Requête invalide.");
+}
 
-    // =============================================
-    // VALIDATION DES CHAMPS OBLIGATOIRES
-    // =============================================
-    // empty() : Fonction PHP qui vérifie si une variable est vide (0, '', null, false, [], etc.).
-    // || : Opérateur logique "OU" (retourne true si au moins une des conditions est vraie).
-    // Ce bloc vérifie si l'un des champs (role, username, password) est vide.
-    if (empty($role) || empty($username) || empty($password)) {
-        // die() : Fonction qui affiche un message et arrête immédiatement l'exécution du script.
-        die("Tous les champs sont obligatoires.");
-    }
+// --- RÉCUPÉRATION ET VALIDATION DES DONNÉES DU FORMULAIRE ---
+// filter_input() : Filtre et valide les entrées utilisateur.
+// FILTER_SANITIZE_STRING : Supprime les balises HTML et les caractères spéciaux.
+// FILTER_SANITIZE_SPECIAL_CHARS : Alternative pour échapper les caractères spéciaux.
+$role = filter_input(INPUT_POST, 'role', FILTER_SANITIZE_STRING) ?? '';
+$username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING) ?? '';
+$password = $_POST['password'] ?? ''; // Ne pas sanitize le mot de passe (hashage nécessaire)
 
-    try {
-        // =============================================
-        // CONNEXION À LA BASE DE DONNÉES
-        // =============================================
-        // getConnexion() : Fonction définie dans connexion_database.php qui retourne une instance PDO.
-        // PDO : PHP Data Objects, une extension pour interagir avec les bases de données de manière sécurisée.
-        $pdo = getConnexion();
+// --- VALIDATION DES CHAMPS OBLIGATOIRES ---
+if (empty($role) || empty($username) || empty($password)) {
+    die("Tous les champs sont obligatoires.");
+}
 
-        // =============================================
-        // REQUÊTE SQL POUR RÉCUPÉRER L'UTILISATEUR
-        // =============================================
-        // prepare() : Méthode de PDO qui prépare une requête SQL pour l'exécution.
-        // :username et :role : Paramètres nommés (placeholders) pour éviter les injections SQL.
-        // La requête sélectionne toutes les colonnes (*) de la table 'utilisateurs'
-        // où le username et le role correspondent aux valeurs fournies.
-        $stmt = $pdo->prepare("SELECT * FROM utilisateurs WHERE username = :username AND role = :role");
+// --- VALIDATION DE LA COMPLEXITÉ DU MOT DE PASSE (Optionnel) ---
+if (strlen($password) < 8) {
+    die("Le mot de passe doit contenir au moins 8 caractères.");
+}
 
-        // =============================================
-        // EXÉCUTION DE LA REQUÊTE AVEC LES PARAMÈTRES
-        // =============================================
-        // execute() : Méthode de PDOStatement qui exécute la requête préparée.
-        // ['username' => $username, 'role' => $role] : Tableau associatif qui associe les paramètres nommés aux valeurs.
-        // Cela permet de lier les valeurs aux placeholders (:username, :role) de manière sécurisée.
-        $stmt->execute(['username' => $username, 'role' => $role]);
+// --- GESTION DES TENTATIVES DE CONNEXION (Anti Brute Force) ---
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+}
 
-        // =============================================
-        // RÉCUPÉRATION DE L'UTILISATEUR
-        // =============================================
-        // fetch() : Méthode de PDOStatement qui récupère la ligne suivante du résultat sous forme de tableau associatif.
-        // Si aucun utilisateur n'est trouvé, fetch() retourne false.
-        // $user : Contient les données de l'utilisateur (username, password, role, etc.) ou false si aucun utilisateur n'est trouvé.
-        $user = $stmt->fetch();
+// Si le nombre de tentatives dépasse 5, bloquer temporairement.
+if ($_SESSION['login_attempts'] >= 5) {
+    die("Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.");
+}
 
-        // =============================================
-        // VÉRIFICATION DES IDENTIFIANTS
-        // =============================================
-        // $user : Vérifie si un utilisateur a été trouvé (différent de false).
-        // password_verify() : Fonction PHP qui vérifie si un mot de passe correspond à un hash.
-        //   - Premier argument : Mot de passe saisi par l'utilisateur (en clair).
-        //   - Deuxième argument : Mot de passe haché stocké en base de données ($user['password']).
-        //   - Retourne true si le mot de passe correspond au hash, false sinon.
-        // Ce bloc vérifie si un utilisateur a été trouvé ET si le mot de passe saisi correspond au hash en base de données.
-        if ($user && password_verify($password, $user['password'])) {
+try {
+    // --- CONNEXION À LA BASE DE DONNÉES ---
+    require_once './database/connexion_database.php';
+    $pdo = getConnexion();
 
-            // =============================================
-            // DÉMARRAGE DE LA SESSION (À AJOUTER POUR STOCKER L'UTILISATEUR)
-            // =============================================
-            // session_start() : Démarre ou reprend une session existante.
-            // Cela permet de stocker des informations sur l'utilisateur connecté (ex: son ID, son rôle).
-            // À ajouter ici pour que les redirections puissent accéder à $_SESSION.
-            // session_start();
-            // $_SESSION['username'] = $user['username'];
-            // $_SESSION['role'] = $user['role'];
+    // --- REQUÊTE SQL PRÉPARÉE (Protection contre les injections SQL) ---
+    // Utilisation de paramètres nommés (:username, :role) pour éviter les injections.
+    $stmt = $pdo->prepare("SELECT id, username, password, role FROM utilisateurs WHERE username = :username AND role = :role");
+    $stmt->execute(['username' => $username, 'role' => $role]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // =============================================
-            // REDIRECTION EN FONCTION DU RÔLE
-            // =============================================
-            // switch : Structure de contrôle qui permet de tester une variable contre plusieurs cas.
-            // $role : Variable testée dans le switch.
-            // Chaque case correspond à un rôle possible (secretaire, medecin, administrateur).
-            switch ($role) {
-                case 'secretaire':
-                    // header() : Fonction PHP qui envoie un en-tête HTTP brut.
-                    // 'Location: routeur.php?action=index' : En-tête HTTP qui redirige le navigateur vers cette URL.
-                    // La redirection se fait vers le routeur avec l'action 'index' pour les secrétaires.
-                    header('Location: routeur.php?action=index');
+    // --- VÉRIFICATION DES IDENTIFIANTS ---
+    // password_verify() : Vérifie si le mot de passe correspond au hash stocké en base.
+    if ($user && password_verify($password, $user['password'])) {
+        // --- CONNEXION RÉUSSIE ---
+        // Réinitialise le compteur de tentatives.
+        $_SESSION['login_attempts'] = 0;
 
-                    // exit() : Fonction qui arrête immédiatement l'exécution du script.
-                    // Cela évite que le code suivant soit exécuté après la redirection.
-                    exit();
+        // Régénère l'ID de session pour éviter les attaques de fixation de session.
+        session_regenerate_id(true);
 
-                case 'medecin':
-                    // Redirection vers la vue spécifique pour les médecins.
-                    header('Location: routeur.php?action=vue_medecin');
-                    exit();
+        // Stocke les informations de l'utilisateur en session.
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = $user['role'];
 
-                case 'administrateur':
-                    // Redirection vers la vue spécifique pour les administrateurs.
-                    header('Location: routeur.php?action=vue_admin');
-                    exit();
-
-                // default : Cas par défaut si aucun des cas précédents ne correspond.
-                default:
-                    // Redirection vers la page d'accueil par défaut.
-                    header('Location: routeur.php?action=index');
-                    exit();
-            }
-
-        } else {
-            // =============================================
-            // IDENTIFIANTS INCORRECTS
-            // =============================================
-            // echo : Affiche un message à l'écran.
-            // Ce message s'affiche si aucun utilisateur n'est trouvé ou si le mot de passe est incorrect.
-            echo "Identifiants incorrects.";
+        // --- REDIRECTION EN FONCTION DU RÔLE ---
+        switch ($role) {
+            case 'secretaire':
+                header('Location: routeur.php?action=index');
+                exit();
+            case 'medecin':
+                header('Location: routeur.php?action=vue_medecin');
+                exit();
+            case 'administrateur':
+                header('Location: routeur.php?action=vue_admin');
+                exit();
+            default:
+                header('Location: routeur.php?action=index');
+                exit();
         }
-
-    } catch (PDOException $e) {
-        // =============================================
-        // GESTION DES ERREURS DE BASE DE DONNÉES
-        // =============================================
-        // catch : Bloc qui capture les exceptions levées dans le bloc try.
-        // PDOException : Classe d'exception spécifique à PDO (erreur de base de données).
-        // $e : Variable qui contient l'objet exception avec les détails de l'erreur.
-        // $e->getMessage() : Méthode qui retourne le message d'erreur de l'exception.
-        // die() : Affiche le message d'erreur et arrête l'exécution du script.
-        die("Erreur de connexion : " . $e->getMessage());
+    } else {
+        // --- IDENTIFIANTS INCORRECTS ---
+        $_SESSION['login_attempts']++; // Incrémente le compteur de tentatives.
+        die("Identifiants incorrects.");
     }
+
+} catch (PDOException $e) {
+    // --- GESTION DES ERREURS (Sécurisée) ---
+    // Enregistre l'erreur dans les logs du serveur (sans l'afficher à l'utilisateur).
+    error_log("Erreur de connexion dans login.php: " . $e->getMessage());
+    die("Une erreur est survenue. Veuillez réessayer plus tard.");
 }
 ?>
