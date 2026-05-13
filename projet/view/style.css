@@ -1,0 +1,287 @@
+/* view/style.css */
+/* Styles généraux */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+}
+
+/* Styles pour la section d'administration */
+.admin-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f0f8ff;
+    border-radius: 5px;
+    border-left: 4px solid #2196F3;
+}
+
+.admin-section h3 {
+    margin-top: 0;
+    color: #1976D2;
+}
+
+.admin-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.admin-form > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-form label {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.admin-form input,
+.admin-form select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.admin-form button {
+    padding: 8px 15px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-end;
+}
+
+.admin-form button:hover {
+    background: #0b7dda;
+}
+
+#generateSlotsNotification {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+}
+
+.success {
+    background: #dff0d8;
+    color: #3c763d;
+}
+
+.error {
+    background: #f2dede;
+    color: #a94442;
+}
+
+/* Section de recherche */
+.search-section {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-section input {
+    padding: 8px;
+    width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.search-section button {
+    padding: 8px 15px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-section button:hover {
+    background-color: #2980b9;
+}
+
+/* Formulaire de rendez-vous */
+.appointment-form {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.appointment-form h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.form-group input[type="text"],
+.form-group input[type="tel"],
+.form-group input[type="date"],
+.form-group input[type="time"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+.form-group small {
+    color: #666;
+    font-size: 12px;
+}
+
+#notification {
+    display: none;
+    margin: 15px 0;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Conteneur des créneaux */
+#slotsContainer {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Boutons de créneaux */
+.slot-button {
+    padding: 10px 15px;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+    cursor: pointer;
+    background: white;
+    color: #3498db;
+    transition: all 0.3s;
+    font-weight: bold;
+}
+
+.slot-button:hover {
+    background: #3498db;
+    color: white;
+}
+
+.slot-button.selected {
+    background: #27ae60;
+    border-color: #27ae60;
+    color: white;
+}
+
+.slot-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    border-color: #ccc;
+    color: #666;
+}
+
+/* Bouton de soumission */
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+    background-color: #1a252f;
+}
+
+.submit-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Liste des rendez-vous */
+.appointments-list {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.appointments-list h2 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.appointment {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.appointment h3 {
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+}
+
+.appointment p {
+    margin: 5px 0;
+    color: #555;
+}
+
+/* Calendrier FullCalendar */
+#calendar {
+    max-width: 100%;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour FullCalendar */
+.fc-event-waiting {
+    background-color: #FFC107 !important;
+    border-color: #FFC107 !important;
+}
+
+.fc-event-confirmed {
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+}
+
+.fc-event-canceled {
+    background-color: #f44336 !important;
+    border-color: #f44336 !important;
+    text-decoration: line-through;
+}
